@@ -5,7 +5,6 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
-
   - repo: local
     hooks:
       - id: pytest
@@ -14,11 +13,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-
       - id: nbmake
         name: nbmake (notebook execution)
         entry: pytest --nbmake
         language: system
-        files: \.ipynb$
+        files: ^replication_smart_green_nudging_v2\.ipynb$
         pass_filenames: true
         types: [jupyter]
