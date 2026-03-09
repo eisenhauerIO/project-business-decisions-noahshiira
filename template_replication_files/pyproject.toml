@@ -1,7 +1,7 @@
 [project]
-name = "student-project"
+name = "replication-smart-green-nudging"
 version = "0.1.0"
-description = "Replication of Lindo et al. (2010) - Academic Probation RDD Analysis"
+description = "Replication of von Zahn et al. (2024) - Smart Green Nudging (Marketing Science)"
 requires-python = ">=3.11"
 
 [tool.ruff]
@@ -13,7 +13,7 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["auxiliary"]
+known-first-party = ["features", "ate", "causal_forest", "plots"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
