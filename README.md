@@ -1,11 +1,109 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/g5Rk6CRe)
-[![Run Notebook](https://github.com/eisenhauerIO/projects-businss-decisions/actions/workflows/run-notebook.yml/badge.svg)](https://github.com/eisenhauerIO/projects-businss-decisions/actions/workflows/run-notebook.yml)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+# Replication: Smart Green Nudging (von Zahn et al., 2024)
 
-## von Zhan
+A replication of **"Smart Green Nudging: Reducing Product Returns Through Digital Footprints and Causal Machine Learning"** published in *Marketing Science*.
 
-The notebook project.ipynb contains an example project by [Annica Gehlen](https://github.com/amageh) from the 2019 iteration of the [OSE data science](https://github.com/OpenSourceEconomics/ose-course-data-science) class at Bonn University. It replicates the results from the following paper:
+> von Zahn, M., Feuerriegel, S., & Kuehl, N. (2024). https://doi.org/10.1287/mksc.2022.0393
 
-* Lindo, J. M., Sanders, N. J., & Oreopoulos, P. (2010). [Ability, Gender, and Performance Standards: Evidence from Academic Probation](https://www.aeaweb.org/articles?id=10.1257/app.2.2.95). *American Economic Journal: Applied Economics*, 2(2), 95-117.
+---
 
-Lindo et al. (2010) examine the effects of academic probation on student outcomes using a regression discontinuity design. The analysis is based on data from a large Canadian university and evaluates whether academic probation is successful in improving the performance of low scoring students. Consistent with a model of performance standards, the authors find that being placed on probation in the first year of university induces some students to drop out of school while it improves the grades of students who continue their studies. In a more general sense, academic probation can offer insights into how agents respond to negative incentives and the threat of punishment in a real-world context.
+## Overview
+
+This notebook replicates all four core components of the paper using **simulated data**:
+
+| Section | Method |
+|---|---|
+| Field Experiment & ATE | OLS (naive + covariate-adjusted) + IPW |
+| Digital Footprint Features | Behavioral feature engineering |
+| Heterogeneous Treatment Effects | `econml` CausalForestDML |
+| Targeting Policy & Profit | Policy curve, value of personalization |
+
+Each section includes an **LLM interpretation** via `litellm` + Llama3.2 running locally via Ollama.
+
+---
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+pip install econml litellm pandas numpy matplotlib seaborn scikit-learn statsmodels
+```
+
+### 2. Start Ollama with Llama3.2
+
+```bash
+# Install Ollama: https://ollama.ai
+ollama pull llama3.2
+ollama serve   # runs on localhost:11434 by default
+```
+
+### 3. Add your data
+
+Place your simulation CSVs in a `data/` folder:
+
+```
+data/
+  train.csv    # Customer features + treatment + return outcome
+  test.csv
+```
+
+Expected columns (at minimum):
+- `treatment` — binary (1 = nudge shown, 0 = control)
+- `returned` — binary outcome (1 = item returned)
+- Any numeric customer/order feature columns
+
+Update `TREATMENT_COL`, `OUTCOME_COL`, and `FEATURE_COLS` at the top of Section 1 if your column names differ.
+
+### 4. Run the notebook
+
+```bash
+jupyter notebook replication_smart_green_nudging.ipynb
+```
+
+---
+
+## Structure
+
+```
+.
+├── replication_smart_green_nudging.ipynb   # Main replication notebook
+├── data/
+│   ├── train.csv                           # Simulated training data (not committed)
+│   └── test.csv                            # Simulated test data (not committed)
+├── README.md
+└── requirements.txt
+```
+
+---
+
+## LLM Integration
+
+The notebook uses `litellm` to call a local **Llama3.2** model (via Ollama) at the end of each section. If Ollama is not running, the notebook still executes fully — LLM cells print a fallback message instead.
+
+```python
+import litellm
+response = litellm.completion(
+    model="ollama_chat/llama3.2",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.0,
+)
+```
+
+---
+
+## Key Results (example with simulated data)
+
+- **ATE**: Green nudge reduces return probability by ~X pp (OLS + controls)
+- **CATE heterogeneity**: ~Y% of customers show beneficial nudge effects
+- **Value of personalization**: Smart targeting outperforms universal nudging by €Z per cohort
+
+*Actual values depend on your simulation parameters.*
+
+---
+
+## References
+
+- von Zahn et al. (2024) — *Marketing Science* — https://doi.org/10.1287/mksc.2022.0393
+- Wager & Athey (2018) — Causal Forests — *JASA*
+- EconML library — https://econml.azurewebsites.net/
+- LiteLLM — https://docs.litellm.ai/
