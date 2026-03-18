@@ -1,0 +1,77 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# config.yaml — Smart Green Nudging Replication
+# All experiment parameters live here. Edit this file to change assumptions;
+# the notebook and all src/ modules read from it automatically.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ── Reproducibility ────────────────────────────────────────────────────────────
+random_seed: 42
+
+# ── Column names ───────────────────────────────────────────────────────────────
+columns:
+  treatment: "treatment"
+  outcome:   "returned"
+
+# ── Data paths ─────────────────────────────────────────────────────────────────
+data:
+  train: "data/train.csv"
+  test:  "data/test.csv"
+
+# ── ATE estimation ─────────────────────────────────────────────────────────────
+ate:
+  n_boot: 500               # bootstrap resamples for SE estimation
+
+# ── Robustness checks ──────────────────────────────────────────────────────────
+robustness:
+  n_permutations: 1000      # permutation test draws
+  placebo_seed_offset: 99   # added to random_seed for placebo RNG
+  sutva_contamination_rates: [0.00, 0.05, 0.10, 0.20, 0.30]
+
+# ── Causal forest ──────────────────────────────────────────────────────────────
+causal_forest:
+  n_estimators: 2000
+  # min_samples_leaf and max_depth are left to EconML defaults
+
+# ── Policy / profit analysis ───────────────────────────────────────────────────
+policy:
+  return_cost: 15.0         # € per returned shipment
+  nudge_cost:  0.10         # € per nudge impression
+  n_fracs:     101          # resolution of the targeting-share sweep [0, 1]
+
+# ── Extensions ─────────────────────────────────────────────────────────────────
+extensions:
+
+  profit_lever:
+    return_costs: [5, 10, 15, 25, 40]      # € per returned item
+    nudge_costs:  [0.05, 0.10, 0.25, 0.50] # € per nudge impression
+    breakeven_sweep_max: 50                 # upper bound for return-cost sweep
+
+  cate_dgp_simulation:
+    n_sim: 2000
+    scenarios:
+      # label: [mean, std]
+      "Homogeneous (σ=0.01)":   [-0.05, 0.01]
+      "Low heterogeneity (σ=0.03)": [-0.05, 0.03]
+      "Moderate — paper (σ=0.07)":  [-0.05, 0.07]
+      "High heterogeneity (σ=0.15)": [-0.03, 0.15]
+
+  multi_arm:
+    n_sim: 3000
+    arms: ["Environmental", "Social Norm", "Financial"]
+    arm_colors: ["#4CAF82", "#5B8DB8", "#E07B54"]
+
+  dynamic_targeting:
+    sample_sizes: [200, 500, 1000, 2000, 5000, 10000, 20000, 50000]
+    test_set_size: 5000
+    true_cate_mean: -0.05
+    true_cate_std:  0.07
+
+# ── Plot styling ───────────────────────────────────────────────────────────────
+plots:
+  colors:
+    smart:   "#4CAF82"
+    universal: "#5B8DB8"
+    accent:  "#E07B54"
+    purple:  "#9B59B6"
+  figsize_wide:  [9, 4]
+  figsize_square: [8, 5]
