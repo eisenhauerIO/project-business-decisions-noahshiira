@@ -11,7 +11,7 @@ def set_random_seed(random_state: int):
 
 def generate_features(n_samples, corr_x4_x5=0.3, p_binary=0.2):
     """Generate feature matrix."""
-    
+
     X1 = np.random.rand(n_samples)
     X2 = np.random.rand(n_samples)
     X3 = np.random.rand(n_samples)
@@ -33,7 +33,7 @@ def generate_treatment(n_samples, p_treatment=0.5):
 
 def generate_outcome(X1, X2, X3, X4, X5, X6, T, base_prob=0.30):
     """Generate outcome variable with treatment heterogeneity."""
-    
+
     n_samples = len(T)
     Y = np.zeros(n_samples, dtype=int)
 
@@ -59,7 +59,7 @@ def generate_outcome(X1, X2, X3, X4, X5, X6, T, base_prob=0.30):
 
 def build_dataframe(X1, X2, X3, X4, X5, X6, X7, T, Y):
     """Create pandas dataframe."""
-    
+
     return pd.DataFrame({
         "X1": X1,
         "X2": X2,
@@ -75,7 +75,7 @@ def build_dataframe(X1, X2, X3, X4, X5, X6, X7, T, Y):
 
 def split_and_save(df, test_size, random_state, output_dir="data"):
     """Split dataset and save."""
-    
+
     train_df, test_df = train_test_split(
         df, test_size=test_size, random_state=random_state
     )

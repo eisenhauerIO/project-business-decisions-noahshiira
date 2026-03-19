@@ -17,40 +17,44 @@ import argparse
 import sys
 import warnings
 
-# Ensure console output is UTF-8 safe (avoids UnicodeEncodeError in some Windows shells)
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-
-warnings.filterwarnings("ignore")
-
-import numpy as np
-import matplotlib
-matplotlib.use("Agg")   # non-interactive backend for headless runs
-
-# ── Allow imports from src/ and the existing ate/features/causal_forest modules ─
-sys.path.insert(0, "src")
-sys.path.insert(0, ".")
-
-from src.config    import load_config
-from src.data      import load_data, describe_split, prepare_matrices
-from src.robustness import run_all_robustness_checks
-from src.policy    import compute_policy, compute_qini, compute_cate_segments
-from src.reporting import build_summary_table, print_summary
-from src.extensions import (
-    profit_lever_analysis,
-    cate_dgp_simulation,
-    domain_translation_table,
-    multi_arm_simulation,
-    dynamic_targeting_simulation,
-)
-
-from features      import engineer_features, get_feature_cols, check_covariate_balance
-from ate           import run_ate_suite
-from causal_forest import fit_causal_forest, compute_rate
+# NOTE: We delay third-party and local imports until inside `main()` so
+# the module can be imported without side effects, and to keep all
+# top-level imports at the top of the file for linting.
 
 
 def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
+    import matplotlib
+    import numpy as np
+
+    # Ensure console output is UTF-8 safe (avoids UnicodeEncodeError in some Windows shells)
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+    warnings.filterwarnings("ignore")
+
+    matplotlib.use("Agg")   # non-interactive backend for headless runs
+
+    # Ensure imports from src/ work regardless of invocation method.
+    sys.path.insert(0, "src")
+    sys.path.insert(0, ".")
+
+    from ate import run_ate_suite
+    from causal_forest import compute_rate, fit_causal_forest
+    from features import check_covariate_balance, engineer_features, get_feature_cols
+    from src.config import load_config
+    from src.data import describe_split, load_data, prepare_matrices
+    from src.extensions import (
+        cate_dgp_simulation,
+        domain_translation_table,
+        dynamic_targeting_simulation,
+        multi_arm_simulation,
+        profit_lever_analysis,
+    )
+    from src.policy import compute_cate_segments, compute_policy, compute_qini
+    from src.reporting import build_summary_table, print_summary
+    from src.robustness import run_all_robustness_checks
+
     print("\n" + "═" * 65)
     print("  Smart Green Nudging — Full Replication Pipeline")
     print("═" * 65 + "\n")

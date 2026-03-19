@@ -15,14 +15,13 @@ Public API
 
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import numpy as np
+import pandas as pd
 import seaborn as sns
 
 from src.config import Config
-
 
 # ── 8.1 Profit lever sensitivity ──────────────────────────────────────────────
 
@@ -250,7 +249,6 @@ def multi_arm_simulation(cfg: Config) -> dict:
     ext   = cfg.extensions.multi_arm
     rng   = np.random.default_rng(cfg.random_seed)
     n_sim = ext.n_sim
-    c     = cfg.plots.colors
 
     past_return_rate  = rng.beta(2, 5, n_sim)
     env_sensitivity   = rng.uniform(0, 1, n_sim)
@@ -277,7 +275,8 @@ def multi_arm_simulation(cfg: Config) -> dict:
         )
     axes[0].axvline(0, color="black", linestyle="--", linewidth=1, alpha=0.6)
     axes[0].set_title("CATE Distributions by Nudge Frame")
-    axes[0].set_xlabel("CATE"); axes[0].set_ylabel("Count")
+    axes[0].set_xlabel("CATE")
+    axes[0].set_ylabel("Count")
     axes[0].legend(fontsize=8)
     axes[0].xaxis.set_major_formatter(mtick.PercentFormatter(1.0, decimals=1))
 
@@ -285,7 +284,8 @@ def multi_arm_simulation(cfg: Config) -> dict:
     arm_shares.index = ext.arms
     arm_shares.plot(kind="bar", ax=axes[1], color=arm_colors, edgecolor="white")
     axes[1].set_title("Optimal Arm Allocation\n(personalised routing)")
-    axes[1].set_xlabel(""); axes[1].set_ylabel("N customers")
+    axes[1].set_xlabel("")
+    axes[1].set_ylabel("N customers")
     axes[1].set_xticklabels(ext.arms, rotation=0)
 
     plt.tight_layout()

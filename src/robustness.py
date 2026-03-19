@@ -13,16 +13,15 @@ Public API
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 
-from src.config import Config
-
 # Import existing ate helpers (already in project)
-from ate import run_ate_suite, permutation_test, bandwidth_sensitivity
-
+from ate import bandwidth_sensitivity, permutation_test
+from src.config import Config
 
 # ── Result container ───────────────────────────────────────────────────────────
 
@@ -43,24 +42,24 @@ class RobustnessResults:
 
         # Permutation test
         sig = "✓ Significant" if perm["p_value"] < 0.05 else "✗ Not significant"
-        print(f"\n  Permutation test")
+        print("\n  Permutation test")
         print(f"    Observed ATE : {perm['observed_ate']:+.4f}")
         print(f"    Empirical p  : {perm['p_value']:.4f}  ({sig} at 5%)")
 
         # Placebo test
         plac_sig = "⚠ Unexpected!" if plac["p_value"] < 0.05 else "✓ As expected (n.s.)"
-        print(f"\n  Placebo / falsification test")
+        print("\n  Placebo / falsification test")
         print(f"    Placebo ATE  : {plac['observed_ate']:+.4f}")
         print(f"    Empirical p  : {plac['p_value']:.4f}  ({plac_sig})")
 
         # Bandwidth
         n_sig = self.bandwidth["sig"].str.strip().ne("").sum()
-        print(f"\n  Bandwidth sensitivity")
+        print("\n  Bandwidth sensitivity")
         print(f"    Bandwidths tested : {len(self.bandwidth)}")
         print(f"    Significant ATEs  : {n_sig} / {len(self.bandwidth)}")
 
         # SUTVA
-        print(f"\n  SUTVA sensitivity  (attenuation from social spillover)")
+        print("\n  SUTVA sensitivity  (attenuation from social spillover)")
         print(self.sutva.to_string(index=False))
         print("═" * 60)
 

@@ -7,18 +7,13 @@ Run with:
     pytest tests/ -v
 """
 
-import sys
-sys.path.insert(0, "src")
-sys.path.insert(0, ".")
-
 import numpy as np
 import pandas as pd
 import pytest
 
-from src.config import load_config, Config, PolicyConfig
-from src.policy import compute_policy, compute_qini, compute_cate_segments
+from src.config import Config, load_config
+from src.policy import compute_cate_segments, compute_policy, compute_qini
 from src.robustness import run_placebo_test, run_sutva_sensitivity
-
 
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 

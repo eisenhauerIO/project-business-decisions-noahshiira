@@ -13,13 +13,12 @@ Public API
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from src.config import Config
-
 
 # ── Loading ────────────────────────────────────────────────────────────────────
 
@@ -121,9 +120,9 @@ def describe_split(
     T = cfg.columns.treatment
     Y = cfg.columns.outcome
 
-    print(f"{'─'*55}")
-    print(f"  DATA SUMMARY")
-    print(f"{'─'*55}")
+    print("─" * 55)
+    print("  DATA SUMMARY")
+    print("─" * 55)
     print(f"  Train rows : {len(df_train):,}  |  Test rows : {len(df_test):,}")
 
     for label, df in [("Train", df_train), ("Test", df_test)]:

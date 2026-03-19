@@ -73,10 +73,14 @@ class ATEResults:
 
 
 def _sig_stars(p: float) -> str:
-    if p < 0.001: return "***"
-    if p < 0.01:  return "**"
-    if p < 0.05:  return "*"
-    if p < 0.1:   return "."
+    if p < 0.001:
+        return "***"
+    if p < 0.01:
+        return "**"
+    if p < 0.05:
+        return "*"
+    if p < 0.1:
+        return "."
     return ""
 
 

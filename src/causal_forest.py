@@ -206,9 +206,6 @@ def _blp_test(
         import statsmodels.api as sm
 
         cate_train = model.effect(X)
-        # Partial-out Y and T using the nuisance models
-        Y_res = model.nuisance_scores_y if hasattr(model, "nuisance_scores_y") else Y - Y.mean()
-        T_res = model.nuisance_scores_t if hasattr(model, "nuisance_scores_t") else T - T.mean()
 
         # Use a simple proxy: regress Y - E[Y|X] on T_res and T_res * CATE
         Y_proxy = Y - Y.mean()
