@@ -5,6 +5,7 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
   - repo: local
     hooks:
       - id: pytest
@@ -13,10 +14,11 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+  
       - id: nbmake
         name: nbmake (notebook execution)
         entry: pytest --nbmake
         language: system
-        files: ^notebook\.ipynb$
+        files: \.ipynb$
         pass_filenames: true
         types: [jupyter]
