@@ -11,16 +11,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-file: environment.yml
-      - name: Lint with ruff
+
+      - name: Lint with ruff (ignore .gitignore files)
         shell: micromamba-shell {0}
         run: |
-          ruff check .
-          ruff format --check .
+          # Generate a comma-separated list of ignored folders/files
+          EXCLUDE=$(git ls-files --others --directory --ignored --exclude-standard | paste -sd "," -)
+          
+          echo "Excluding the following files/folders from linting: $EXCLUDE"
+          
+          # Run ruff linting, excluding ignored files/folders
+          ruff check . --exclude "$EXCLUDE"
+          ruff format --check . --exclude "$EXCLUDE"
+
       - name: Run notebook
         shell: micromamba-shell {0}
         run: |
-          PYTHONPATH=src pytest --nbmake replication_smart_green_nudging_v2.ipynb
+          PYTHONPATH=src pytest --nbmake notebook.ipynb
