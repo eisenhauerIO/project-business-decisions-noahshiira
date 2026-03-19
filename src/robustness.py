@@ -153,7 +153,8 @@ def run_sutva_sensitivity(
     rows = []
     for cr in cfg.robustness.sutva_contamination_rates:
         rng = np.random.default_rng(cfg.random_seed)
-        Y_contaminated = Y_train.copy()
+        # Ensure float dtype so we can apply partial contamination without type errors.
+        Y_contaminated = Y_train.astype(float).copy()
         ctrl_idx = np.where(T_train == 0)[0]
         n_contaminate = int(cr * len(ctrl_idx))
         contaminated  = rng.choice(ctrl_idx, n_contaminate, replace=False)

@@ -9,27 +9,27 @@ random_seed: 42
 
 # ── Column names ───────────────────────────────────────────────────────────────
 columns:
-  treatment: "treatment"
-  outcome:   "returned"
+  treatment: "T"
+  outcome:   "Y"
 
 # ── Data paths ─────────────────────────────────────────────────────────────────
 data:
-  train: "data/train.csv"
-  test:  "data/test.csv"
+  train: "data/train_data.csv"
+  test:  "data/test_data.csv"
 
 # ── ATE estimation ─────────────────────────────────────────────────────────────
 ate:
-  n_boot: 500               # bootstrap resamples for SE estimation
+  n_boot: 100               # bootstrap resamples for SE estimation (reduced for quicker runs)
 
 # ── Robustness checks ──────────────────────────────────────────────────────────
 robustness:
-  n_permutations: 1000      # permutation test draws
+  n_permutations: 100      # permutation test draws (reduced for quicker runs)
   placebo_seed_offset: 99   # added to random_seed for placebo RNG
   sutva_contamination_rates: [0.00, 0.05, 0.10, 0.20, 0.30]
 
 # ── Causal forest ──────────────────────────────────────────────────────────────
 causal_forest:
-  n_estimators: 2000
+  n_estimators: 200      # smaller forest for quicker runs
   # min_samples_leaf and max_depth are left to EconML defaults
 
 # ── Policy / profit analysis ───────────────────────────────────────────────────

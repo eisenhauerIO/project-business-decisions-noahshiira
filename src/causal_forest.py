@@ -98,6 +98,7 @@ def fit_causal_forest(
     n_estimators: int = 2_000,
     min_samples_leaf: int = 10,
     cv: int = 5,
+    seed: int | None = None,
     alpha: float = 0.05,
 ) -> CATEResult:
     """
@@ -122,6 +123,8 @@ def fit_causal_forest(
     X_tr = np.asarray(X_train) if not isinstance(X_train, np.ndarray) else X_train
     X_te = np.asarray(X_test)  if not isinstance(X_test,  np.ndarray) else X_test
 
+    seed = RANDOM_SEED if seed is None else seed
+
     if feature_names is None:
         feature_names = [f"x{i}" for i in range(X_tr.shape[1])]
 
@@ -132,17 +135,17 @@ def fit_causal_forest(
 
     model = CausalForestDML(
         model_y=GradientBoostingRegressor(
-            n_estimators=200, max_depth=4, random_state=RANDOM_SEED
+            n_estimators=200, max_depth=4, random_state=seed
         ),
         model_t=GradientBoostingClassifier(
-            n_estimators=200, max_depth=4, random_state=RANDOM_SEED
+            n_estimators=200, max_depth=4, random_state=seed
         ),
         n_estimators=n_estimators,
         min_samples_leaf=min_samples_leaf,
         max_depth=None,
         max_features="sqrt",
         inference=True,
-        random_state=RANDOM_SEED,
+        random_state=seed,
         cv=cv,
     )
 

@@ -133,7 +133,7 @@ def load_config(path: str | Path = "config.yaml") -> Config:
             "Make sure you're running from the project root."
         )
 
-    with path.open() as f:
+    with path.open(encoding="utf-8") as f:
         raw = yaml.safe_load(f)
 
     cfg = Config(

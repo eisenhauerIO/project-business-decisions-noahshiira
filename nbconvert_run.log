@@ -1,0 +1,23 @@
+﻿C:/Users/noaht/AppData/Local/Programs/Python/Python313/python.exe : 
+[NbConvertApp] Converting notebook notebook.ipynb to notebook
+At line:1 char:1
++ C:/Users/noaht/AppData/Local/Programs/Python/Python313/python.exe -m  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([NbConvertApp] ...ynb to notebook 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+C:\Users\noaht\AppData\Local\Programs\Python\Python313\Lib\site-packages\nbform
+at\__init__.py:96: MissingIDFieldWarning: Cell is missing an id field, this 
+will become a hard error in future nbformat versions. You may want to use 
+`normalize()` on your notebooks before validations (available since nbformat 
+5.1.4). Previous versions of nbformat are fixing this issue transparently, and 
+will stop doing so in the future.
+  validate(nb)
+C:\Users\noaht\AppData\Local\Programs\Python\Python313\Lib\site-packages\zmq\_f
+uture.py:718: RuntimeWarning: Proactor event loop does not implement 
+add_reader family of methods required for zmq. Registering an additional 
+selector thread for add_reader support via tornado. Use 
+`asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid 
+this warning.
+  self._get_loop()

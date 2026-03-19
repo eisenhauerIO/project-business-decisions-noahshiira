@@ -16,6 +16,12 @@ from __future__ import annotations
 import argparse
 import sys
 import warnings
+
+# Ensure console output is UTF-8 safe (avoids UnicodeEncodeError in some Windows shells)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 warnings.filterwarnings("ignore")
 
 import numpy as np
