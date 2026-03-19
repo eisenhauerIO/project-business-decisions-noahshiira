@@ -17,6 +17,6 @@ repos:
         name: nbmake (notebook execution)
         entry: pytest --nbmake
         language: system
-        files: ^replication_smart_green_nudging_v2\.ipynb$
+        files: ^notebook\.ipynb$
         pass_filenames: true
         types: [jupyter]
