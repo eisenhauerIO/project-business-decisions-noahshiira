@@ -139,13 +139,18 @@ def fit_causal_forest(
         n_estimators,
     )
 
+    # If the treatment is binary, a classifier can be used; otherwise we use a regressor.
+    # This avoids errors such as: "Cannot use a classifier as a first stage model when the target is continuous!"
+    if np.unique(T).size <= 2:
+        model_t = GradientBoostingClassifier(n_estimators=200, max_depth=4, random_state=seed)
+    else:
+        model_t = GradientBoostingRegressor(n_estimators=200, max_depth=4, random_state=seed)
+
     model = CausalForestDML(
         model_y=GradientBoostingRegressor(
             n_estimators=200, max_depth=4, random_state=seed
         ),
-        model_t=GradientBoostingClassifier(
-            n_estimators=200, max_depth=4, random_state=seed
-        ),
+        model_t=model_t,
         n_estimators=n_estimators,
         min_samples_leaf=min_samples_leaf,
         max_depth=None,
