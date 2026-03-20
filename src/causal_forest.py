@@ -1,3 +1,4 @@
+# ruff: noqa: N803  # Uppercase argument names (Y, T, X, …) follow scientific convention.
 """
 causal_forest.py
 ----------------
@@ -20,8 +21,6 @@ Usage
 """
  
 from __future__ import annotations
- 
-# ruff: noqa: N803  # Uppercase argument names (Y, T, X, …) follow scientific convention.
  
 import logging
 from dataclasses import dataclass, field
@@ -305,3 +304,4 @@ def compute_rate(
  
     logger.info("compute_rate: RATE=%.4f", rate)
     return {"rate": rate, "toc_x": qs, "toc_y": toc_y_arr, "random_y": random_y}
+ 

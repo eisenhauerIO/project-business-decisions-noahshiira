@@ -11,12 +11,12 @@ replication-smart-green-nudging = "scripts.run_all:main"
 line-length = 88
 target-version = "py311"
 
-[tool.ruff.lint]
+[tool.ruff.lint]    
 select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["features", "ate", "causal_forest", "plots",]
+known-first-party = ["features", "ate", "causal_forest", "plots", "src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
