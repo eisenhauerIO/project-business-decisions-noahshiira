@@ -143,16 +143,23 @@ def fit_causal_forest(
     # This avoids: "Cannot use a classifier as a first stage model when the target is continuous!"
     T_arr = np.asarray(T, dtype=float)
     unique_t = np.unique(T_arr)
-    is_binary_treatment = (
-        unique_t.size == 2
-        and np.allclose(np.sort(unique_t), np.array([0.0, 1.0]))
+    is_binary_treatment = unique_t.size == 2 and np.allclose(
+        np.sort(unique_t), np.array([0.0, 1.0])
     )
-    logger.info("fit_causal_forest: unique treatment values %s, is_binary=%s", unique_t, is_binary_treatment)
+    logger.info(
+        "fit_causal_forest: unique treatment values %s, is_binary=%s",
+        unique_t,
+        is_binary_treatment,
+    )
 
     if is_binary_treatment:
-        model_t = GradientBoostingClassifier(n_estimators=200, max_depth=4, random_state=seed)
+        model_t = GradientBoostingClassifier(
+            n_estimators=200, max_depth=4, random_state=seed
+        )
     else:
-        model_t = GradientBoostingRegressor(n_estimators=200, max_depth=4, random_state=seed)
+        model_t = GradientBoostingRegressor(
+            n_estimators=200, max_depth=4, random_state=seed
+        )
 
     model = CausalForestDML(
         model_y=GradientBoostingRegressor(
