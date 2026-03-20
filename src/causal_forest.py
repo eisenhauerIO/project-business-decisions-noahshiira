@@ -4,7 +4,7 @@ causal_forest.py
 ----------------
 Causal Forest fitting, CATE inference, and heterogeneity diagnostics for the
 Smart Green Nudging replication — von Zahn et al. (2024).
- 
+
 Key additions over the original notebook
 -----------------------------------------
 * Calibration test  – checks whether the forest's heterogeneity is statistically
@@ -14,36 +14,36 @@ Key additions over the original notebook
 * RATE (Rank Average Treatment Effect) – measures the value of targeting by
   computing area-under-the-TOC curve.
 * Structured CATEResult dataclass for clean downstream use.
- 
+
 Usage
 -----
     from causal_forest import fit_causal_forest, CATEResult
 """
- 
+
 from __future__ import annotations
- 
+
 import logging
 from dataclasses import dataclass, field
- 
+
 import numpy as np
 import pandas as pd
 from econml.dml import CausalForestDML
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
- 
+
 logger = logging.getLogger(__name__)
- 
+
 RANDOM_SEED = 42
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # Result dataclass
 # ---------------------------------------------------------------------------
- 
- 
+
+
 @dataclass
 class CATEResult:
     """Container for all CATE-related outputs from fit_causal_forest().
- 
+
     Attributes
     ----------
     model        : fitted CausalForestDML instance
@@ -55,7 +55,7 @@ class CATEResult:
     feat_imp     : pd.Series of feature importances (sorted descending)
     blp_test     : dict with best-linear-predictor calibration test results
     """
- 
+
     model: object
     cate: np.ndarray
     cate_lb: np.ndarray
@@ -64,7 +64,7 @@ class CATEResult:
     conf_score: float
     feat_imp: pd.Series
     blp_test: dict = field(default_factory=dict)
- 
+
     def summary(self) -> str:
         """Return a formatted summary string of CATE estimates and diagnostics."""
         lines = [
@@ -88,13 +88,13 @@ class CATEResult:
             ]
         lines.append("═" * 60)
         return "\n".join(lines)
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # Model fitting
 # ---------------------------------------------------------------------------
- 
- 
+
+
 def fit_causal_forest(
     Y_train: np.ndarray | pd.Series,
     T_train: np.ndarray | pd.Series,
@@ -108,7 +108,7 @@ def fit_causal_forest(
     alpha: float = 0.05,
 ) -> CATEResult:
     """Fit a CausalForestDML and return a CATEResult with full diagnostics.
- 
+
     Parameters
     ----------
     Y_train, T_train, X_train : training arrays
@@ -118,7 +118,7 @@ def fit_causal_forest(
     min_samples_leaf          : minimum leaf size (controls regularisation)
     cv                        : cross-fitting folds
     alpha                     : significance level for CI construction
- 
+
     Returns
     -------
     CATEResult
@@ -127,13 +127,13 @@ def fit_causal_forest(
     T = np.asarray(T_train)
     X_tr = X_train if isinstance(X_train, np.ndarray) else np.asarray(X_train)
     X_te = X_test if isinstance(X_test, np.ndarray) else np.asarray(X_test)
- 
+
     if seed is None:
         seed = RANDOM_SEED
- 
+
     if feature_names is None:
         feature_names = [f"x{i}" for i in range(X_tr.shape[1])]
- 
+
     logger.info(
         "fit_causal_forest: N_train=%d, N_test=%d, p=%d, n_trees=%d",
         len(Y),
@@ -141,7 +141,7 @@ def fit_causal_forest(
         X_tr.shape[1],
         n_estimators,
     )
- 
+
     # Determine whether treatment is strictly binary {0, 1}.
     # Use integer casting rather than np.allclose to avoid float-precision false
     # positives that cause econml to raise:
@@ -160,7 +160,7 @@ def fit_causal_forest(
         unique_t,
         is_binary_treatment,
     )
- 
+
     model_t: GradientBoostingClassifier | GradientBoostingRegressor
     if is_binary_treatment:
         model_t = GradientBoostingClassifier(
@@ -170,7 +170,7 @@ def fit_causal_forest(
         model_t = GradientBoostingRegressor(
             n_estimators=200, max_depth=4, random_state=seed
         )
- 
+
     model = CausalForestDML(
         model_y=GradientBoostingRegressor(
             n_estimators=200, max_depth=4, random_state=seed
@@ -184,25 +184,25 @@ def fit_causal_forest(
         random_state=seed,
         cv=cv,
     )
- 
+
     logger.info("  Fitting causal forest (this may take ~1-2 min)…")
     model.fit(Y, T, X=X_tr)
     logger.info("  Fit complete.")
- 
+
     # ── Point estimates & CIs ─────────────────────────────────────────────
     cate = model.effect(X_te)
     lb, ub = model.effect_interval(X_te, alpha=alpha)
     sig = (ub < 0) | (lb > 0)  # CI excludes zero
     conf_score = sig.mean()
- 
+
     # ── Feature importance ────────────────────────────────────────────────
     feat_imp = pd.Series(model.feature_importances_, index=feature_names).sort_values(
         ascending=False
     )
- 
+
     # ── BLP calibration test ──────────────────────────────────────────────
     blp = _blp_test(model, Y, T, X_tr)
- 
+
     result = CATEResult(
         model=model,
         cate=cate,
@@ -213,16 +213,16 @@ def fit_causal_forest(
         feat_imp=feat_imp,
         blp_test=blp,
     )
- 
+
     logger.info(result.summary().replace("\n", " | "))
     return result
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # Calibration test (Best Linear Predictor)
 # ---------------------------------------------------------------------------
- 
- 
+
+
 def _blp_test(
     model: CausalForestDML,
     Y: np.ndarray,
@@ -230,19 +230,19 @@ def _blp_test(
     X: np.ndarray,
 ) -> dict:
     """Run the Best-Linear-Predictor (BLP) test for CATE heterogeneity.
- 
+
     Regresses (Y_residual) on (T_residual) and (T_residual × CATE_hat).
       β₁ ≈ mean treatment effect (should match ATE)
       β₂ > 0 ⟹ significant heterogeneity
- 
+
     Reference: Chernozhukov et al. (2022), "Generic Machine Learning Inference
     on Heterogeneous Treatment Effects in Randomised Experiments."
     """
     try:
         import statsmodels.api as sm  # noqa: PLC0415
- 
+
         cate_train = model.effect(X)
- 
+
         # Use a simple proxy: regress Y - E[Y|X] on T_res and T_res * CATE
         Y_proxy = Y - Y.mean()
         T_proxy = T - T.mean()
@@ -250,7 +250,7 @@ def _blp_test(
             np.column_stack([T_proxy, T_proxy * (cate_train - cate_train.mean())])
         )
         res = sm.OLS(Y_proxy, X_blp).fit(cov_type="HC3")
- 
+
         return {
             "beta1": res.params[1],
             "beta2": res.params[2],
@@ -260,13 +260,13 @@ def _blp_test(
     except Exception:  # noqa: BLE001
         logger.warning("_blp_test failed", exc_info=True)
         return {}
- 
- 
+
+
 # ---------------------------------------------------------------------------
 # RATE: Rank Average Treatment Effect (targeting value)
 # ---------------------------------------------------------------------------
- 
- 
+
+
 def compute_rate(
     cate: np.ndarray,
     Y: np.ndarray,
@@ -274,11 +274,11 @@ def compute_rate(
     n_quantiles: int = 20,
 ) -> dict:
     """Estimate the RATE (Rank Average Treatment Effect).
- 
+
     Computes the area under the Targeting Operating Characteristic (TOC) curve.
     A positive RATE confirms that targeting high-CATE individuals is more
     valuable than random assignment.
- 
+
     Returns
     -------
     dict with keys: rate, toc_x, toc_y, random_y
@@ -286,7 +286,7 @@ def compute_rate(
     order = np.argsort(cate)[::-1]  # rank from highest to lowest |effect|
     n = len(cate)
     qs = np.linspace(0, 1, n_quantiles + 1)[1:]  # top-q fractions
- 
+
     toc_y = []
     for q in qs:
         k = max(1, int(q * n))
@@ -297,11 +297,10 @@ def compute_rate(
             else np.nan
         )
         toc_y.append(ate_k)
- 
+
     toc_y_arr = np.array(toc_y)
     random_y = np.nanmean(toc_y_arr) * np.ones_like(toc_y_arr)  # flat ATE baseline
     rate = float(np.nanmean(toc_y_arr) - np.nanmean(random_y))
- 
+
     logger.info("compute_rate: RATE=%.4f", rate)
     return {"rate": rate, "toc_x": qs, "toc_y": toc_y_arr, "random_y": random_y}
- 
