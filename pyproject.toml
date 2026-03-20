@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Replication of von Zahn et al. (2024) - Smart Green Nudging (Marketing Science)"
 requires-python = ">=3.11"
 
+[project.scripts]
+replication-smart-green-nudging = "scripts.run_all:main"
+
 [tool.ruff]
 line-length = 88
 target-version = "py311"
@@ -13,7 +16,7 @@ select = ["E", "F", "W", "I"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["features", "ate", "causal_forest", "plots"]
+known-first-party = ["features", "ate", "causal_forest", "plots",]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

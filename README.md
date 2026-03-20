@@ -12,7 +12,7 @@ https://doi.org/10.1287/mksc.2022.0393
 project/
 ├── notebook.ipynb          ← Main replication notebook (clean, narrative-first)
 ├── config.yaml             ← ALL parameters — edit here, nowhere else
-├── run_all.py              ← Headless pipeline (no notebook needed)
+├── scripts/run_all.py      ← Headless pipeline (no notebook needed)
 │
 ├── src/                    ← Refactored Python modules
 │   ├── config.py           ← Loads config.yaml → typed Config dataclass
@@ -52,7 +52,9 @@ jupyter notebook notebook.ipynb
 
 ### 3. Run the full pipeline headlessly
 ```bash
-python run_all.py
+python scripts/run_all.py
+# or after install:
+# replication-smart-green-nudging
 ```
 
 ### 4. Run tests
