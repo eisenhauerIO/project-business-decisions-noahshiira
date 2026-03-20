@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 from econml.dml import CausalForestDML
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 
 logger = logging.getLogger(__name__)
 
@@ -142,34 +142,18 @@ def fit_causal_forest(
         n_estimators,
     )
 
-    # Determine whether treatment is strictly binary {0, 1}.
-    # Use integer casting rather than np.allclose to avoid float-precision false
-    # positives that cause econml to raise:
+    # Always use a regressor for model_t regardless of whether treatment is binary.
+    # A classifier is unsafe here because econml's internal cross-fitting can produce
+    # folds with only one class, which causes:
     #   "Cannot use a classifier as a first stage model when the target is continuous!"
-    # We also require every value to round-trip through int without loss, ensuring
-    # the column is genuinely discrete before handing it to a classifier.
-    T_arr = np.asarray(T, dtype=float)
-    T_int = T_arr.astype(int)
-    unique_t = np.unique(T_arr)
-    is_binary_treatment = (
-        np.array_equal(T_arr, T_int)  # no fractional values anywhere
-        and set(T_int.tolist()) == {0, 1}  # exactly the two classes {0, 1}
-    )
-    logger.info(
-        "fit_causal_forest: unique treatment values %s, is_binary=%s",
-        unique_t,
-        is_binary_treatment,
-    )
+    # The regressor handles binary {0,1} treatment correctly by predicting propensity
+    # scores as continuous values, which is exactly what the R-learner expects.
+    unique_t = np.unique(np.asarray(T, dtype=float))
+    logger.info("fit_causal_forest: unique treatment values %s", unique_t)
 
-    model_t: GradientBoostingClassifier | GradientBoostingRegressor
-    if is_binary_treatment:
-        model_t = GradientBoostingClassifier(
-            n_estimators=200, max_depth=4, random_state=seed
-        )
-    else:
-        model_t = GradientBoostingRegressor(
-            n_estimators=200, max_depth=4, random_state=seed
-        )
+    model_t = GradientBoostingRegressor(
+        n_estimators=200, max_depth=4, random_state=seed
+    )
 
     model = CausalForestDML(
         model_y=GradientBoostingRegressor(
@@ -304,3 +288,4 @@ def compute_rate(
 
     logger.info("compute_rate: RATE=%.4f", rate)
     return {"rate": rate, "toc_x": qs, "toc_y": toc_y_arr, "random_y": random_y}
+    
