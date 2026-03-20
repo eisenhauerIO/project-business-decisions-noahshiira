@@ -25,12 +25,13 @@ from src.config import Config
 
 # ── Result container ───────────────────────────────────────────────────────────
 
+
 @dataclass
 class RobustnessResults:
-    permutation:        dict
-    bandwidth:          pd.DataFrame
-    placebo:            dict
-    sutva:              pd.DataFrame
+    permutation: dict
+    bandwidth: pd.DataFrame
+    placebo: dict
+    sutva: pd.DataFrame
 
     def print_summary(self) -> None:
         perm = self.permutation
@@ -66,6 +67,7 @@ class RobustnessResults:
 
 # ── Individual checks ──────────────────────────────────────────────────────────
 
+
 def run_permutation_test(
     Y: pd.Series,
     T: pd.Series,
@@ -80,7 +82,9 @@ def run_permutation_test(
     Returns a dict with keys: observed_ate, null_mean, null_std, p_value, null_dist.
     """
     return permutation_test(
-        Y, T, X,
+        Y,
+        T,
+        X,
         n_permutations=cfg.robustness.n_permutations,
         seed=cfg.random_seed,
     )
@@ -125,7 +129,9 @@ def run_placebo_test(
         index=Y.index,
     )
     result = permutation_test(
-        Y_placebo, T, X,
+        Y_placebo,
+        T,
+        X,
         n_permutations=cfg.robustness.n_permutations // 2,  # faster
         seed=cfg.random_seed,
     )
@@ -134,10 +140,10 @@ def run_placebo_test(
 
 
 def run_sutva_sensitivity(
-    Y_train:       pd.Series,
-    T_train:       pd.Series,
+    Y_train: pd.Series,
+    T_train: pd.Series,
     ate_reference: float,
-    cfg:           Config,
+    cfg: Config,
 ) -> pd.DataFrame:
     """
     Quantify how SUTVA violations (social spillover to control units) would
@@ -156,34 +162,34 @@ def run_sutva_sensitivity(
         Y_contaminated = Y_train.astype(float).copy()
         ctrl_idx = np.where(T_train == 0)[0]
         n_contaminate = int(cr * len(ctrl_idx))
-        contaminated  = rng.choice(ctrl_idx, n_contaminate, replace=False)
+        contaminated = rng.choice(ctrl_idx, n_contaminate, replace=False)
         # Partial nudge effect: control outcomes shift by 50% of ATE
-        Y_contaminated.iloc[contaminated] = (
-            Y_contaminated.iloc[contaminated] * (1 + ate_reference * 0.5)
+        Y_contaminated.iloc[contaminated] = Y_contaminated.iloc[contaminated] * (
+            1 + ate_reference * 0.5
         )
-        biased_ate = (
-            Y_train[T_train == 1].mean()
-            - Y_contaminated[T_train == 0].mean()
+        biased_ate = Y_train[T_train == 1].mean() - Y_contaminated[T_train == 0].mean()
+        rows.append(
+            {
+                "contamination_rate": f"{cr:.0%}",
+                "biased_ate": round(biased_ate, 4),
+                "true_ate": round(ate_reference, 4),
+                "bias": round(biased_ate - ate_reference, 4),
+            }
         )
-        rows.append({
-            "contamination_rate": f"{cr:.0%}",
-            "biased_ate":  round(biased_ate, 4),
-            "true_ate":    round(ate_reference, 4),
-            "bias":        round(biased_ate - ate_reference, 4),
-        })
     return pd.DataFrame(rows)
 
 
 # ── Convenience wrapper ────────────────────────────────────────────────────────
 
+
 def run_all_robustness_checks(
-    df_train:     pd.DataFrame,
-    Y_train:      pd.Series,
-    T_train:      pd.Series,
-    X_train:      pd.DataFrame,
+    df_train: pd.DataFrame,
+    Y_train: pd.Series,
+    T_train: pd.Series,
+    X_train: pd.DataFrame,
     ate_reference: float,
     feature_cols: list[str],
-    cfg:          Config,
+    cfg: Config,
 ) -> RobustnessResults:
     """
     Run all four robustness checks and return a RobustnessResults object.

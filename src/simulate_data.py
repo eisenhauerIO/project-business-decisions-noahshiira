@@ -9,6 +9,7 @@ def set_random_seed(random_state: int):
     """
     np.random.seed(random_state)
 
+
 def generate_features(n_samples, corr_x4_x5=0.3, p_binary=0.2):
     """Generate feature matrix."""
 
@@ -20,15 +21,15 @@ def generate_features(n_samples, corr_x4_x5=0.3, p_binary=0.2):
     noise = np.random.rand(n_samples)
     X5 = corr_x4_x5 * X4 + np.sqrt(1 - corr_x4_x5**2) * noise
 
-    X6 = np.random.choice([0, 1], size=n_samples, p=[1-p_binary, p_binary])
-    X7 = np.random.choice([0, 1], size=n_samples, p=[1-p_binary, p_binary])
+    X6 = np.random.choice([0, 1], size=n_samples, p=[1 - p_binary, p_binary])
+    X7 = np.random.choice([0, 1], size=n_samples, p=[1 - p_binary, p_binary])
 
     return X1, X2, X3, X4, X5, X6, X7
 
 
 def generate_treatment(n_samples, p_treatment=0.5):
     """Generate treatment assignment."""
-    return np.random.choice([0, 1], size=n_samples, p=[1-p_treatment, p_treatment])
+    return np.random.choice([0, 1], size=n_samples, p=[1 - p_treatment, p_treatment])
 
 
 def generate_outcome(X1, X2, X3, X4, X5, X6, T, base_prob=0.30):
@@ -38,7 +39,6 @@ def generate_outcome(X1, X2, X3, X4, X5, X6, T, base_prob=0.30):
     Y = np.zeros(n_samples, dtype=int)
 
     for i in range(n_samples):
-
         if T[i] == 1:
             prob_Y = (
                 base_prob
@@ -60,17 +60,19 @@ def generate_outcome(X1, X2, X3, X4, X5, X6, T, base_prob=0.30):
 def build_dataframe(X1, X2, X3, X4, X5, X6, X7, T, Y):
     """Create pandas dataframe."""
 
-    return pd.DataFrame({
-        "X1": X1,
-        "X2": X2,
-        "X3": X3,
-        "X4": X4,
-        "X5": X5,
-        "X6": X6,
-        "X7": X7,
-        "T": T,
-        "Y": Y
-    })
+    return pd.DataFrame(
+        {
+            "X1": X1,
+            "X2": X2,
+            "X3": X3,
+            "X4": X4,
+            "X5": X5,
+            "X6": X6,
+            "X7": X7,
+            "T": T,
+            "Y": Y,
+        }
+    )
 
 
 def split_and_save(df, test_size, random_state, output_dir="data"):
@@ -94,7 +96,7 @@ def simulate_dataset(
     p_binary=0.2,
     p_treatment=0.5,
     base_prob=0.30,
-    output_dir="data"
+    output_dir="data",
 ):
     """
     Umbrella function orchestrating the full simulation pipeline.
@@ -103,29 +105,17 @@ def simulate_dataset(
     np.random.seed(random_state)
 
     X1, X2, X3, X4, X5, X6, X7 = generate_features(
-        n_samples,
-        corr_x4_x5=corr_x4_x5,
-        p_binary=p_binary
+        n_samples, corr_x4_x5=corr_x4_x5, p_binary=p_binary
     )
 
-    T = generate_treatment(
-        n_samples,
-        p_treatment=p_treatment
-    )
+    T = generate_treatment(n_samples, p_treatment=p_treatment)
 
-    Y = generate_outcome(
-        X1, X2, X3, X4, X5, X6,
-        T,
-        base_prob=base_prob
-    )
+    Y = generate_outcome(X1, X2, X3, X4, X5, X6, T, base_prob=base_prob)
 
     df = build_dataframe(X1, X2, X3, X4, X5, X6, X7, T, Y)
 
     split_and_save(
-        df,
-        test_size=test_size,
-        random_state=random_state,
-        output_dir=output_dir
+        df, test_size=test_size, random_state=random_state, output_dir=output_dir
     )
 
 

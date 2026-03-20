@@ -36,6 +36,7 @@ RANDOM_SEED = 42
 # Result dataclass
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class CATEResult:
     """
@@ -52,14 +53,15 @@ class CATEResult:
     feat_imp     : pd.Series of feature importances (sorted descending)
     blp_test     : dict with best-linear-predictor calibration test results
     """
-    model:       object
-    cate:        np.ndarray
-    cate_lb:     np.ndarray
-    cate_ub:     np.ndarray
+
+    model: object
+    cate: np.ndarray
+    cate_lb: np.ndarray
+    cate_ub: np.ndarray
     significant: np.ndarray
-    conf_score:  float
-    feat_imp:    pd.Series
-    blp_test:    dict = field(default_factory=dict)
+    conf_score: float
+    feat_imp: pd.Series
+    blp_test: dict = field(default_factory=dict)
 
     def summary(self) -> str:
         lines = [
@@ -67,7 +69,7 @@ class CATEResult:
             "  CAUSAL FOREST — CATE SUMMARY",
             "═" * 60,
             f"  N (test set)          : {len(self.cate)}",
-            f"  Mean CATE             : {self.cate.mean():+.4f}  ({self.cate.mean()*100:+.2f} pp)",
+            f"  Mean CATE             : {self.cate.mean():+.4f}  ({self.cate.mean() * 100:+.2f} pp)",
             f"  Std CATE              : {self.cate.std():.4f}",
             f"  Min / Max CATE        : {self.cate.min():+.4f} / {self.cate.max():+.4f}",
             f"  % CATE < 0 (nudge ↓) : {(self.cate < 0).mean():.1%}",
@@ -88,6 +90,7 @@ class CATEResult:
 # ---------------------------------------------------------------------------
 # Model fitting
 # ---------------------------------------------------------------------------
+
 
 def fit_causal_forest(
     Y_train: np.ndarray | pd.Series,
@@ -121,7 +124,7 @@ def fit_causal_forest(
     Y = np.asarray(Y_train)
     T = np.asarray(T_train)
     X_tr = np.asarray(X_train) if not isinstance(X_train, np.ndarray) else X_train
-    X_te = np.asarray(X_test)  if not isinstance(X_test,  np.ndarray) else X_test
+    X_te = np.asarray(X_test) if not isinstance(X_test, np.ndarray) else X_test
 
     seed = RANDOM_SEED if seed is None else seed
 
@@ -130,7 +133,10 @@ def fit_causal_forest(
 
     logger.info(
         "fit_causal_forest: N_train=%d, N_test=%d, p=%d, n_trees=%d",
-        len(Y), len(X_te), X_tr.shape[1], n_estimators,
+        len(Y),
+        len(X_te),
+        X_tr.shape[1],
+        n_estimators,
     )
 
     model = CausalForestDML(
@@ -154,15 +160,15 @@ def fit_causal_forest(
     logger.info("  Fit complete.")
 
     # ── Point estimates & CIs ─────────────────────────────────────────────
-    cate      = model.effect(X_te)
-    lb, ub    = model.effect_interval(X_te, alpha=alpha)
-    sig       = (ub < 0) | (lb > 0)          # CI excludes zero
+    cate = model.effect(X_te)
+    lb, ub = model.effect_interval(X_te, alpha=alpha)
+    sig = (ub < 0) | (lb > 0)  # CI excludes zero
     conf_score = sig.mean()
 
     # ── Feature importance ────────────────────────────────────────────────
-    feat_imp = pd.Series(
-        model.feature_importances_, index=feature_names
-    ).sort_values(ascending=False)
+    feat_imp = pd.Series(model.feature_importances_, index=feature_names).sort_values(
+        ascending=False
+    )
 
     # ── BLP calibration test ──────────────────────────────────────────────
     blp = _blp_test(model, Y, T, X_tr)
@@ -185,6 +191,7 @@ def fit_causal_forest(
 # ---------------------------------------------------------------------------
 # Calibration test (Best Linear Predictor)
 # ---------------------------------------------------------------------------
+
 
 def _blp_test(
     model: CausalForestDML,
@@ -210,7 +217,7 @@ def _blp_test(
         # Use a simple proxy: regress Y - E[Y|X] on T_res and T_res * CATE
         Y_proxy = Y - Y.mean()
         T_proxy = T - T.mean()
-        X_blp   = sm.add_constant(
+        X_blp = sm.add_constant(
             np.column_stack([T_proxy, T_proxy * (cate_train - cate_train.mean())])
         )
         res = sm.OLS(Y_proxy, X_blp).fit(cov_type="HC3")
@@ -230,6 +237,7 @@ def _blp_test(
 # RATE: Rank Average Treatment Effect (targeting value)
 # ---------------------------------------------------------------------------
 
+
 def compute_rate(
     cate: np.ndarray,
     Y: np.ndarray,
@@ -247,13 +255,13 @@ def compute_rate(
     -------
     dict with keys: rate, toc_x, toc_y, random_y
     """
-    order  = np.argsort(cate)[::-1]    # rank from highest to lowest |effect|
-    n      = len(cate)
-    qs     = np.linspace(0, 1, n_quantiles + 1)[1:]   # top-q fractions
+    order = np.argsort(cate)[::-1]  # rank from highest to lowest |effect|
+    n = len(cate)
+    qs = np.linspace(0, 1, n_quantiles + 1)[1:]  # top-q fractions
 
     toc_y = []
     for q in qs:
-        k     = max(1, int(q * n))
+        k = max(1, int(q * n))
         top_k = order[:k]
         ate_k = (
             Y[top_k][T[top_k] == 1].mean() - Y[top_k][T[top_k] == 0].mean()
@@ -262,9 +270,9 @@ def compute_rate(
         )
         toc_y.append(ate_k)
 
-    toc_y    = np.array(toc_y)
-    random_y = np.nanmean(toc_y) * np.ones_like(toc_y)   # flat ATE baseline
-    rate     = float(np.nanmean(toc_y) - np.nanmean(random_y))
+    toc_y = np.array(toc_y)
+    random_y = np.nanmean(toc_y) * np.ones_like(toc_y)  # flat ATE baseline
+    rate = float(np.nanmean(toc_y) - np.nanmean(random_y))
 
     logger.info("compute_rate: RATE=%.4f", rate)
     return dict(rate=rate, toc_x=qs, toc_y=toc_y, random_y=random_y)

@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 # Core feature engineering
 # ---------------------------------------------------------------------------
 
+
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     Construct behavioural features from customer digital footprint columns.
@@ -64,8 +65,8 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # ── Bracketing behaviour ───────────────────────────────────────────────
     if "n_items_ordered" in df.columns and "n_items_returned" in df.columns:
-        df["bracket_rate"] = (
-            df["n_items_returned"] / df["n_items_ordered"].clip(lower=1)
+        df["bracket_rate"] = df["n_items_returned"] / df["n_items_ordered"].clip(
+            lower=1
         )
         added.append("bracket_rate")
 
@@ -87,8 +88,8 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     # ── Device type ────────────────────────────────────────────────────────
     if "device_type" in df.columns:
         dtype_lower = df["device_type"].str.lower()
-        df["is_mobile"]  = (dtype_lower == "mobile").astype(int)
-        df["is_tablet"]  = (dtype_lower == "tablet").astype(int)
+        df["is_mobile"] = (dtype_lower == "mobile").astype(int)
+        df["is_tablet"] = (dtype_lower == "tablet").astype(int)
         added += ["is_mobile", "is_tablet"]
 
     logger.info("engineer_features: added %d columns → %s", len(added), added)
@@ -115,15 +116,16 @@ def get_feature_cols(
     if exclude is None:
         exclude = []
     return [
-        c for c in df.columns
-        if c not in exclude
-        and pd.api.types.is_numeric_dtype(df[c])
+        c
+        for c in df.columns
+        if c not in exclude and pd.api.types.is_numeric_dtype(df[c])
     ]
 
 
 # ---------------------------------------------------------------------------
 # Validity checks
 # ---------------------------------------------------------------------------
+
 
 def check_covariate_balance(
     df: pd.DataFrame,
@@ -142,7 +144,7 @@ def check_covariate_balance(
     rows = []
     for col in feature_cols:
         ctrl = df.loc[df[treatment_col] == 0, col].dropna()
-        trt  = df.loc[df[treatment_col] == 1, col].dropna()
+        trt = df.loc[df[treatment_col] == 1, col].dropna()
         pooled_sd = np.sqrt((ctrl.var() + trt.var()) / 2)
         smd = (trt.mean() - ctrl.mean()) / pooled_sd if pooled_sd > 0 else np.nan
         rows.append(

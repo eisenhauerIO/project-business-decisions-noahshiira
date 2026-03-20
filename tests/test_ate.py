@@ -17,6 +17,7 @@ from src.robustness import run_placebo_test, run_sutva_sensitivity
 
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def cfg():
     """Return a default Config (no YAML needed for unit tests)."""
@@ -29,10 +30,12 @@ def small_rct(cfg):
     rng = np.random.default_rng(42)
     n = 500
     T = rng.integers(0, 2, n)
-    X = pd.DataFrame({
-        "x1": rng.normal(0, 1, n),
-        "x2": rng.uniform(0, 1, n),
-    })
+    X = pd.DataFrame(
+        {
+            "x1": rng.normal(0, 1, n),
+            "x2": rng.uniform(0, 1, n),
+        }
+    )
     # True ATE = -0.05
     Y = pd.Series((rng.random(n) < (0.35 + T * (-0.05))).astype(float))
     T = pd.Series(T.astype(float))
@@ -45,22 +48,25 @@ def df_test_with_cate(cfg):
     rng = np.random.default_rng(42)
     n = 200
     cate = rng.normal(-0.05, 0.07, n)
-    T    = rng.integers(0, 2, n).astype(float)
-    Y    = (rng.random(n) < 0.35).astype(float)
-    return pd.DataFrame({
-        "cate": cate,
-        cfg.columns.treatment: T,
-        cfg.columns.outcome:   Y,
-    })
+    T = rng.integers(0, 2, n).astype(float)
+    Y = (rng.random(n) < 0.35).astype(float)
+    return pd.DataFrame(
+        {
+            "cate": cate,
+            cfg.columns.treatment: T,
+            cfg.columns.outcome: Y,
+        }
+    )
 
 
 # ── Config tests ───────────────────────────────────────────────────────────────
+
 
 class TestConfig:
     def test_default_config_builds(self, cfg):
         assert cfg.random_seed == 42
         assert cfg.policy.return_cost == 15.0
-        assert cfg.policy.nudge_cost  == 0.10
+        assert cfg.policy.nudge_cost == 0.10
 
     def test_config_fields_accessible(self, cfg):
         assert hasattr(cfg, "causal_forest")
@@ -74,17 +80,18 @@ class TestConfig:
 
 # ── Policy tests ───────────────────────────────────────────────────────────────
 
+
 class TestPolicy:
     def test_compute_policy_returns_correct_shape(self, df_test_with_cate, cfg):
         policy = compute_policy(df_test_with_cate, ate_reference=-0.026, cfg=cfg)
         assert len(policy.fracs) == cfg.policy.n_fracs
         assert len(policy.profit_smart) == cfg.policy.n_fracs
-        assert len(policy.profit_univ)  == cfg.policy.n_fracs
+        assert len(policy.profit_univ) == cfg.policy.n_fracs
 
     def test_profit_at_zero_frac_is_zero(self, df_test_with_cate, cfg):
         policy = compute_policy(df_test_with_cate, ate_reference=-0.026, cfg=cfg)
         assert policy.profit_smart[0] == pytest.approx(0.0)
-        assert policy.profit_univ[0]  == pytest.approx(0.0)
+        assert policy.profit_univ[0] == pytest.approx(0.0)
 
     def test_best_frac_in_unit_interval(self, df_test_with_cate, cfg):
         policy = compute_policy(df_test_with_cate, ate_reference=-0.026, cfg=cfg)
@@ -97,7 +104,9 @@ class TestPolicy:
     def test_df_pol_sorted_by_cate(self, df_test_with_cate, cfg):
         policy = compute_policy(df_test_with_cate, ate_reference=-0.026, cfg=cfg)
         cates = policy.df_pol["cate"].values
-        assert np.all(cates[:-1] <= cates[1:]), "df_pol should be sorted ascending by CATE"
+        assert np.all(cates[:-1] <= cates[1:]), (
+            "df_pol should be sorted ascending by CATE"
+        )
 
 
 class TestQINI:
@@ -105,8 +114,8 @@ class TestQINI:
         T = df_test_with_cate[cfg.columns.treatment]
         Y = df_test_with_cate[cfg.columns.outcome]
         result = compute_qini(df_test_with_cate, Y, T)
-        assert "auqc"      in result
-        assert "fracs"     in result
+        assert "auqc" in result
+        assert "fracs" in result
         assert "qini_vals" in result
         assert np.isfinite(result["auqc"])
 
@@ -135,6 +144,7 @@ class TestCATESegments:
 
 # ── Robustness tests ───────────────────────────────────────────────────────────
 
+
 class TestRobustness:
     def test_placebo_pvalue_in_unit_interval(self, small_rct, cfg):
         X, T, Y = small_rct
@@ -148,7 +158,7 @@ class TestRobustness:
         df_sutva = run_sutva_sensitivity(Y, T, ate_reference=-0.026, cfg=cfg)
         assert len(df_sutva) == len(cfg.robustness.sutva_contamination_rates)
         assert "biased_ate" in df_sutva.columns
-        assert "bias"       in df_sutva.columns
+        assert "bias" in df_sutva.columns
 
     def test_zero_contamination_bias_is_near_zero(self, small_rct, cfg):
         X, T, Y = small_rct

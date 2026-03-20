@@ -21,16 +21,17 @@ import yaml
 
 # ── Sub-configs ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ColumnsConfig:
     treatment: str = "treatment"
-    outcome:   str = "returned"
+    outcome: str = "returned"
 
 
 @dataclass
 class DataConfig:
     train: str = "data/train.csv"
-    test:  str = "data/test.csv"
+    test: str = "data/test.csv"
 
 
 @dataclass
@@ -40,8 +41,8 @@ class ATEConfig:
 
 @dataclass
 class RobustnessConfig:
-    n_permutations:            int        = 1000
-    placebo_seed_offset:       int        = 99
+    n_permutations: int = 1000
+    placebo_seed_offset: int = 99
     sutva_contamination_rates: List[float] = field(
         default_factory=lambda: [0.0, 0.05, 0.10, 0.20, 0.30]
     )
@@ -55,72 +56,86 @@ class CausalForestConfig:
 @dataclass
 class PolicyConfig:
     return_cost: float = 15.0
-    nudge_cost:  float = 0.10
-    n_fracs:     int   = 101
+    nudge_cost: float = 0.10
+    n_fracs: int = 101
 
 
 @dataclass
 class ProfitLeverConfig:
-    return_costs:        List[float] = field(default_factory=lambda: [5, 10, 15, 25, 40])
-    nudge_costs:         List[float] = field(default_factory=lambda: [0.05, 0.10, 0.25, 0.50])
-    breakeven_sweep_max: float       = 50.0
+    return_costs: List[float] = field(default_factory=lambda: [5, 10, 15, 25, 40])
+    nudge_costs: List[float] = field(default_factory=lambda: [0.05, 0.10, 0.25, 0.50])
+    breakeven_sweep_max: float = 50.0
 
 
 @dataclass
 class CateDGPConfig:
-    n_sim:     int                      = 2000
-    scenarios: Dict[str, List[float]]   = field(default_factory=dict)
+    n_sim: int = 2000
+    scenarios: Dict[str, List[float]] = field(default_factory=dict)
 
 
 @dataclass
 class MultiArmConfig:
-    n_sim:       int        = 3000
-    arms:        List[str]  = field(default_factory=lambda: ["Environmental", "Social Norm", "Financial"])
-    arm_colors:  List[str]  = field(default_factory=lambda: ["#4CAF82", "#5B8DB8", "#E07B54"])
+    n_sim: int = 3000
+    arms: List[str] = field(
+        default_factory=lambda: ["Environmental", "Social Norm", "Financial"]
+    )
+    arm_colors: List[str] = field(
+        default_factory=lambda: ["#4CAF82", "#5B8DB8", "#E07B54"]
+    )
 
 
 @dataclass
 class DynamicTargetingConfig:
-    sample_sizes:    List[int] = field(default_factory=lambda: [200, 500, 1000, 2000, 5000, 10000, 20000])
-    test_set_size:   int       = 5000
-    true_cate_mean:  float     = -0.05
-    true_cate_std:   float     = 0.07
+    sample_sizes: List[int] = field(
+        default_factory=lambda: [200, 500, 1000, 2000, 5000, 10000, 20000]
+    )
+    test_set_size: int = 5000
+    true_cate_mean: float = -0.05
+    true_cate_std: float = 0.07
 
 
 @dataclass
 class ExtensionsConfig:
-    profit_lever:       ProfitLeverConfig      = field(default_factory=ProfitLeverConfig)
-    cate_dgp_simulation: CateDGPConfig         = field(default_factory=CateDGPConfig)
-    multi_arm:          MultiArmConfig         = field(default_factory=MultiArmConfig)
-    dynamic_targeting:  DynamicTargetingConfig = field(default_factory=DynamicTargetingConfig)
+    profit_lever: ProfitLeverConfig = field(default_factory=ProfitLeverConfig)
+    cate_dgp_simulation: CateDGPConfig = field(default_factory=CateDGPConfig)
+    multi_arm: MultiArmConfig = field(default_factory=MultiArmConfig)
+    dynamic_targeting: DynamicTargetingConfig = field(
+        default_factory=DynamicTargetingConfig
+    )
 
 
 @dataclass
 class PlotsConfig:
-    colors: Dict[str, str] = field(default_factory=lambda: {
-        "smart": "#4CAF82", "universal": "#5B8DB8",
-        "accent": "#E07B54", "purple": "#9B59B6",
-    })
-    figsize_wide:   List[float] = field(default_factory=lambda: [9.0, 4.0])
+    colors: Dict[str, str] = field(
+        default_factory=lambda: {
+            "smart": "#4CAF82",
+            "universal": "#5B8DB8",
+            "accent": "#E07B54",
+            "purple": "#9B59B6",
+        }
+    )
+    figsize_wide: List[float] = field(default_factory=lambda: [9.0, 4.0])
     figsize_square: List[float] = field(default_factory=lambda: [8.0, 5.0])
 
 
 # ── Root config ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class Config:
-    random_seed:   int                = 42
-    columns:       ColumnsConfig      = field(default_factory=ColumnsConfig)
-    data:          DataConfig         = field(default_factory=DataConfig)
-    ate:           ATEConfig          = field(default_factory=ATEConfig)
-    robustness:    RobustnessConfig   = field(default_factory=RobustnessConfig)
+    random_seed: int = 42
+    columns: ColumnsConfig = field(default_factory=ColumnsConfig)
+    data: DataConfig = field(default_factory=DataConfig)
+    ate: ATEConfig = field(default_factory=ATEConfig)
+    robustness: RobustnessConfig = field(default_factory=RobustnessConfig)
     causal_forest: CausalForestConfig = field(default_factory=CausalForestConfig)
-    policy:        PolicyConfig       = field(default_factory=PolicyConfig)
-    extensions:    ExtensionsConfig   = field(default_factory=ExtensionsConfig)
-    plots:         PlotsConfig        = field(default_factory=PlotsConfig)
+    policy: PolicyConfig = field(default_factory=PolicyConfig)
+    extensions: ExtensionsConfig = field(default_factory=ExtensionsConfig)
+    plots: PlotsConfig = field(default_factory=PlotsConfig)
 
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
+
 
 def load_config(path: str | Path = "config.yaml") -> Config:
     """
@@ -139,14 +154,12 @@ def load_config(path: str | Path = "config.yaml") -> Config:
 
     cfg = Config(
         random_seed=raw.get("random_seed", 42),
-
         columns=ColumnsConfig(**raw.get("columns", {})),
         data=DataConfig(**raw.get("data", {})),
         ate=ATEConfig(**raw.get("ate", {})),
         robustness=RobustnessConfig(**raw.get("robustness", {})),
         causal_forest=CausalForestConfig(**raw.get("causal_forest", {})),
         policy=PolicyConfig(**raw.get("policy", {})),
-
         extensions=_parse_extensions(raw.get("extensions", {})),
         plots=_parse_plots(raw.get("plots", {})),
     )
@@ -154,15 +167,17 @@ def load_config(path: str | Path = "config.yaml") -> Config:
 
 
 def _parse_extensions(raw: dict) -> ExtensionsConfig:
-    pl   = raw.get("profit_lever", {})
-    dgp  = raw.get("cate_dgp_simulation", {})
-    ma   = raw.get("multi_arm", {})
-    dyn  = raw.get("dynamic_targeting", {})
+    pl = raw.get("profit_lever", {})
+    dgp = raw.get("cate_dgp_simulation", {})
+    ma = raw.get("multi_arm", {})
+    dyn = raw.get("dynamic_targeting", {})
     return ExtensionsConfig(
         profit_lever=ProfitLeverConfig(**pl) if pl else ProfitLeverConfig(),
         cate_dgp_simulation=CateDGPConfig(**dgp) if dgp else CateDGPConfig(),
         multi_arm=MultiArmConfig(**ma) if ma else MultiArmConfig(),
-        dynamic_targeting=DynamicTargetingConfig(**dyn) if dyn else DynamicTargetingConfig(),
+        dynamic_targeting=DynamicTargetingConfig(**dyn)
+        if dyn
+        else DynamicTargetingConfig(),
     )
 
 

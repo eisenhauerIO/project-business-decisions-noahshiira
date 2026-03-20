@@ -21,13 +21,14 @@ from src.config import Config
 
 # ── Result container ───────────────────────────────────────────────────────────
 
+
 @dataclass
 class PolicyResults:
-    fracs:          np.ndarray   # [0, 1] targeting share grid
-    profit_smart:   np.ndarray   # smart targeting profit at each frac
-    profit_univ:    np.ndarray   # universal nudging profit at each frac
-    best_frac:      float        # optimal targeting share
-    df_pol:         pd.DataFrame # test set sorted by CATE (ascending)
+    fracs: np.ndarray  # [0, 1] targeting share grid
+    profit_smart: np.ndarray  # smart targeting profit at each frac
+    profit_univ: np.ndarray  # universal nudging profit at each frac
+    best_frac: float  # optimal targeting share
+    df_pol: pd.DataFrame  # test set sorted by CATE (ascending)
 
     @property
     def max_profit_smart(self) -> float:
@@ -60,10 +61,11 @@ class PolicyResults:
 
 # ── Core computation ───────────────────────────────────────────────────────────
 
+
 def compute_policy(
-    df_test:       pd.DataFrame,
+    df_test: pd.DataFrame,
     ate_reference: float,
-    cfg:           Config,
+    cfg: Config,
 ) -> PolicyResults:
     """
     Compute the profit-maximising smart targeting policy.
@@ -79,12 +81,12 @@ def compute_policy(
     ate_reference : the ATE estimate used for the universal nudging baseline.
     cfg : experiment config.
     """
-    rc    = cfg.policy.return_cost
-    nc    = cfg.policy.nudge_cost
+    rc = cfg.policy.return_cost
+    nc = cfg.policy.nudge_cost
     fracs = np.linspace(0, 1, cfg.policy.n_fracs)
 
     df_pol = df_test.sort_values("cate").reset_index(drop=True)
-    n      = len(df_pol)
+    n = len(df_pol)
 
     profit_smart, profit_univ = [], []
     for frac in fracs:
@@ -97,8 +99,8 @@ def compute_policy(
         profit_univ.append(univ_benefit - k * nc)
 
     profit_smart = np.array(profit_smart)
-    profit_univ  = np.array(profit_univ)
-    best_frac    = fracs[np.argmax(profit_smart)]
+    profit_univ = np.array(profit_univ)
+    best_frac = fracs[np.argmax(profit_smart)]
 
     return PolicyResults(
         fracs=fracs,
@@ -111,8 +113,8 @@ def compute_policy(
 
 def compute_qini(
     df_test: pd.DataFrame,
-    Y_test:  pd.Series,
-    T_test:  pd.Series,
+    Y_test: pd.Series,
+    T_test: pd.Series,
 ) -> dict:
     """
     Compute the QINI curve (standard uplift model evaluation metric).
@@ -129,10 +131,10 @@ def compute_qini(
     Y_sorted = Y_test.values[cate_sorted_idx]
     T_sorted = T_test.values[cate_sorted_idx]
 
-    n_test           = len(Y_sorted)
-    n_treated_total  = T_sorted.sum()
-    n_control_total  = (1 - T_sorted).sum()
-    ratio            = n_treated_total / max(1, n_control_total)
+    n_test = len(Y_sorted)
+    n_treated_total = T_sorted.sum()
+    n_control_total = (1 - T_sorted).sum()
+    ratio = n_treated_total / max(1, n_control_total)
 
     qini_vals = []
     cum_uplift = 0.0
@@ -144,14 +146,14 @@ def compute_qini(
         qini_vals.append(cum_uplift)
 
     fracs = np.linspace(0, 1, n_test)
-    auqc  = float(np.trapz(qini_vals, fracs) / n_test)
+    auqc = float(np.trapz(qini_vals, fracs) / n_test)
 
     return {"fracs": fracs, "qini_vals": np.array(qini_vals), "auqc": auqc}
 
 
 def compute_cate_segments(
-    df_test:  pd.DataFrame,
-    cfg:      Config,
+    df_test: pd.DataFrame,
+    cfg: Config,
     outcome_col: str | None = None,
 ) -> pd.DataFrame:
     """
@@ -170,13 +172,12 @@ def compute_cate_segments(
     )
 
     seg = (
-        df_test
-        .groupby("cate_quartile", observed=True)
+        df_test.groupby("cate_quartile", observed=True)
         .agg(
-            n=          (Y,      "count"),
-            return_rate=(Y,      "mean"),
-            mean_cate=  ("cate", "mean"),
-            ci_width=   ("cate", lambda x: x.std() * 1.96 / np.sqrt(len(x))),
+            n=(Y, "count"),
+            return_rate=(Y, "mean"),
+            mean_cate=("cate", "mean"),
+            ci_width=("cate", lambda x: x.std() * 1.96 / np.sqrt(len(x))),
         )
         .round(4)
     )

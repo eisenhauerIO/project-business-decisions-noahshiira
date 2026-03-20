@@ -33,7 +33,7 @@ def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
 
     warnings.filterwarnings("ignore")
 
-    matplotlib.use("Agg")   # non-interactive backend for headless runs
+    matplotlib.use("Agg")  # non-interactive backend for headless runs
 
     # Ensure imports from src/ work regardless of invocation method.
     sys.path.insert(0, "src")
@@ -74,13 +74,15 @@ def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
     # ── 2. Feature engineering ─────────────────────────────────────────────────
     print("\n── 2. Feature engineering ──")
     df_train = engineer_features(df_train)
-    df_test  = engineer_features(df_test)
+    df_test = engineer_features(df_test)
     feature_cols = get_feature_cols(df_train, exclude=[T, Y])
     print(f"   {len(feature_cols)} features: {feature_cols}")
 
     balance = check_covariate_balance(df_train, T, feature_cols)
     max_smd = balance["smd"].abs().max() if "smd" in balance.columns else float("nan")
-    print(f"   Max SMD (covariate balance): {max_smd:.4f}  {'✓ OK' if max_smd < 0.1 else '⚠ Check balance'}")
+    print(
+        f"   Max SMD (covariate balance): {max_smd:.4f}  {'✓ OK' if max_smd < 0.1 else '⚠ Check balance'}"
+    )
 
     X_train, T_train, Y_train, X_test, T_test, Y_test = prepare_matrices(
         df_train, df_test, feature_cols, cfg
@@ -88,10 +90,11 @@ def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
 
     # ── 3. ATE estimation ──────────────────────────────────────────────────────
     print("\n── 3. ATE estimation ──")
-    ate_results = run_ate_suite(Y_train, T_train, X_train,
-                                n_boot=cfg.ate.n_boot, seed=cfg.random_seed)
+    ate_results = run_ate_suite(
+        Y_train, T_train, X_train, n_boot=cfg.ate.n_boot, seed=cfg.random_seed
+    )
     print(ate_results.summary())
-    ate_ref = ate_results.ate[1]   # OLS + controls
+    ate_ref = ate_results.ate[1]  # OLS + controls
 
     # ── 4. Robustness ──────────────────────────────────────────────────────────
     print("\n── 4. Robustness checks ──")
@@ -103,7 +106,10 @@ def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
     # ── 5. Causal forest ───────────────────────────────────────────────────────
     print("\n── 5. Causal forest (CATE) ──")
     cf = fit_causal_forest(
-        Y_train, T_train, X_train, X_test,
+        Y_train,
+        T_train,
+        X_train,
+        X_test,
         feature_names=feature_cols,
         n_estimators=cfg.causal_forest.n_estimators,
         seed=cfg.random_seed,
@@ -111,7 +117,7 @@ def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
     print(cf.summary())
 
     df_test = df_test.copy()
-    df_test["cate"]    = cf.cate
+    df_test["cate"] = cf.cate
     df_test["cate_lb"] = cf.cate_lb
     df_test["cate_ub"] = cf.cate_ub
     pct_benefit = (cf.cate < 0).mean()
@@ -165,9 +171,15 @@ def main(config_path: str = "config.yaml", run_extensions: bool = True) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Smart Green Nudging replication pipeline")
+    parser = argparse.ArgumentParser(
+        description="Smart Green Nudging replication pipeline"
+    )
     parser.add_argument("--config", default="config.yaml", help="Path to config YAML")
-    parser.add_argument("--no-extensions", dest="extensions", action="store_false",
-                        help="Skip Section 8 extension analyses")
+    parser.add_argument(
+        "--no-extensions",
+        dest="extensions",
+        action="store_false",
+        help="Skip Section 8 extension analyses",
+    )
     args = parser.parse_args()
     main(config_path=args.config, run_extensions=args.extensions)
