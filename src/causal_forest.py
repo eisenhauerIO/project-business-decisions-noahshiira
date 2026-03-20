@@ -288,4 +288,3 @@ def compute_rate(
 
     logger.info("compute_rate: RATE=%.4f", rate)
     return {"rate": rate, "toc_x": qs, "toc_y": toc_y_arr, "random_y": random_y}
-    
