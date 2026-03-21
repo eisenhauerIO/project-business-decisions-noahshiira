@@ -146,7 +146,7 @@ def compute_qini(
         qini_vals.append(cum_uplift)
 
     fracs = np.linspace(0, 1, n_test)
-    auqc = float(np.trapz(qini_vals, fracs) / n_test)
+    auqc = float(np.trapezoid(qini_vals, fracs) / n_test)
 
     return {"fracs": fracs, "qini_vals": np.array(qini_vals), "auqc": auqc}
 
